@@ -126,13 +126,28 @@ if __name__ == '__main__':
     new_r.login(new_username, new_pass)
 
     new_user = new_r.user  # get a praw.objects.LoggedInRedditor object
-    print '\t>>Login successful..'
+    print '\t>> Login successful..'
 
     print '>> Migrating subscriptions...'
     for sub in subs:
         new_r.get_subreddit(sub.display_name).subscribe()
         old_r.get_subreddit(sub.display_name).unsubscribe()
         print_dot()
+    
+    print '>> Loading saved posts...'
+    links = []
+    for post in old_user.get_saved():
+        post.reddit_session = new_r
+        links.append(post)
+        print_dot()
+    
+    # Reverse the links so the appear in the same order
+    # as the old account
+    print '>> Transferring saved posts to new account...'
+    for post in reversed(links):
+        post.save()
+        print_dot()
+    
     print '\n\t>> Done migrating.'
 
     print '>> Go to https://ssl.reddit.com/prefs/delete/',
